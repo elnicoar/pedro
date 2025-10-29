@@ -1,0 +1,2 @@
+# pedro
+Reglamento del Pedro
