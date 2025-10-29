@@ -1,2 +1,3 @@
-# pedro
-Reglamento del Pedro
+# Reglamento del Pedro
+
+https://elnicoar.github.io/pedro/
