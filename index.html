@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reglamento del Pedro</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    background-color: #fdfdfd;
+    color: #222;
+    padding: 20px;
+    max-width: 900px;
+    margin: auto;
+  }
+  h1, h2, h3 {
+    color: #333;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 0.5em;
+    line-height: 1.5em;
+  }
+  hr {
+    border: 0;
+    border-top: 1px solid #ccc;
+    margin: 20px 0;
+  }
+  .flex {
+    display: flex;
+    align-items: center; /* centra verticalmente icono y texto */
+    gap: 10px;
+  }
+  .flex .emoji-grande {
+    flex: 0 0 2em; /* columna angosta para el icono */
+    text-align: center;
+    line-height: 1;
+  }
+  .flex div {
+    flex: 1;
+  }
+  blockquote {
+    background: #f0f0f0;
+    padding: 20px 15px;
+    border-left: 5px solid #ccc;
+    margin: 15px 0;
+  }
+  ul {
+    margin: 10px 0 10px 10px;
+    padding-left: 15px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    vertical-align: top;
+  }
+  td.effect, th.effect {
+    text-align: left;
+    padding-left: 12px;
+  }
+  th {
+    background-color: #eee;
+  }
+  code {
+    background: #eee;
+    padding: 2px 4px;
+    border-radius: 3px;
+  }
+  .emoji-grande {
+    font-size: 2em;
+    vertical-align: middle;
+  }
+  .spade-symbol {
+    vertical-align: sub;
+  }
+  .pulse {
+    animation: pulse 1.5s ease-in-out;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 rgba(0,0,0,0); }
+    16% { transform: scale(1.03); box-shadow: 0 0 10px 9px rgba(255,255,255,0.7),0 0 25px 5px rgba(255,0,0,0.7); }
+    33% { transform: scale(1); box-shadow: 0 0 0 rgba(0,0,0,0); }
+    50% { transform: scale(1.03); box-shadow: 0 0 10px 9px rgba(255,255,255,0.7),0 0 25px 5px rgba(255,0,0,0.7); }
+    66% { transform: scale(1); box-shadow: 0 0 0 rgba(0,0,0,0); }
+    83% { transform: scale(1.03); box-shadow: 0 0 10px 9px rgba(255,255,255,0.7),0 0 25px 5px rgba(255,0,0,0.7); }
+  }
+  .telebeam {
+    color: #0077cc;
+    font-weight: bold;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .tooltip-img {
+    display: none;
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translate(-50%, -110%);
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 5px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+  }
+
+  .tooltip-img img {
+    max-width: 200px;
+    height: auto;
+    border-radius: 8px;
+  }
+
+</style>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', e => {
+        e.preventDefault();
+        const target = document.querySelector(anchor.getAttribute('href'));
+        if (target) {
+          target.classList.remove('pulse');
+          target.scrollIntoView({ behavior: 'smooth' });
+          setTimeout(() => {
+            requestAnimationFrame(() => target.classList.add('pulse'));
+          }, 300);
+        }
+      });
+    });
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const telebeam = document.getElementById('telebeam');
+    const tooltip = document.createElement('div');
+    tooltip.className = 'tooltip-img';
+    tooltip.innerHTML = '<img src="telebeam.jpg" alt="Telebeam">';
+    telebeam.appendChild(tooltip);
+
+    let hideTimeout;
+
+    function showTooltip() {
+      clearTimeout(hideTimeout);
+      tooltip.style.display = 'block';
+      hideTimeout = setTimeout(() => {
+        tooltip.style.display = 'none';
+      }, 5000);
+    }
+
+    function hideTooltip() {
+      tooltip.style.display = 'none';
+    }
+
+    telebeam.addEventListener('mouseenter', showTooltip);
+    telebeam.addEventListener('click', showTooltip);
+    telebeam.addEventListener('mouseleave', hideTooltip);
+  });
+</script>
+<body>
+
+<h1><span class="emoji-grande">🧠</span> Reglamento del Pedro</h1>
+<hr>
+
+<h2 class="flex"><span class="emoji-grande">🎯</span><div>Objetivo</div></h2>
+<p>El objetivo del juego es <strong>terminar con la menor cantidad de puntos posible</strong> al final de todas las manos, usando tu memoria y tu estrategia.</p>
+<p>Durante la mano tenés que <strong>recordar tus cartas</strong>, <strong>vigilar los movimientos de tus oponentes</strong> y <strong>seguir todos los cambios de cartas</strong> que ocurran en cada turno.</p>
+<p>La mano fluye turno tras turno: el juego continúa mientras los jugadores roban, descartan y cambian cartas, hasta que <strong>alguien <a href="#cantar">canta Pedro</a></strong> o <strong>un jugador <a href="#descartar">se queda sin cartas</a></strong>… ¡y ahí sonaste!</p>
+
+<blockquote class="flex">
+  <span class="emoji-grande">🤐</span><div>Nadie está obligado a explicar qué hizo ni dónde puso sus cartas.<br>
+  <strong>Si no estabas atento… te jodés.</strong><br>
+  <em>Un juego de memoria al estilo argentino: acordate de tus cartas, chusmeá las de los demás y no te duermas que acá no hay <span id="telebeam" class="telebeam">Telebeam</span>, ¡acá se juega en serio!</em>
+</div></blockquote>
+
+
+<hr>
+
+<h2 class="flex"><span class="emoji-grande">🛠️</span><div>Preparación</div></h2>
+
+<h3>Número de jugadores y inicio</h3>
+<ul>
+  <li>Se juega con <strong>1 mazo de póker</strong> (usá 2 mazos si son 5–8 jugadores).</li>
+  <li><strong>No se usan los comodines.</strong></li>
+</ul>
+<p>Se puede jugar con un mínimo de 2 jugadores, pero es más divertido con más, ya que hay más cosas para memorizar.</p>
+<p>El juego avanza en sentido antihorario. El jugador a la derecha del repartidor empieza la mano.</p>
+
+<p>Cada jugador recibe <strong>4 cartas boca abajo sin mirar</strong> y las coloca en una <strong>cuadrícula 2x2</strong>.<br>
+Al inicio, puede ver únicamente <strong>2 cartas</strong>; después, solo podrá revisarlas nuevamente si una <a href="#habilidades">habilidad</a> lo permite.</p>
+  
+<hr>
+<div id="valores">
+<h2 class="flex"><span class="emoji-grande">🃏</span><div> Valores de las cartas</div></h2>
+
+<p><strong>Números:</strong> su valor natural (el As vale 1 punto, el 2 vale 2 puntos y así sucesivamente).</p>
+<p><strong>Figuras:</strong> J = 11, Q = 12, K = 13</p>
+<p><strong>Excepción:</strong> la Q de Picas <span class="emoji-grande spade-symbol">♠</span> = 0 puntos (la carta más codiciada).</p>
+<p>Estos valores se utilizan al final de cada mano para calcular la <strong><a href="#puntuacion">puntuación</a> de cada jugador</strong>.</p>
+</div>
+<hr>
+<div id="mazo">
+<h2 class="flex"><span class="emoji-grande">🂠</span><div> Mazo Tapado</div></h2>
+<p>El <strong>mazo</strong> con las cartas hacia abajo se coloca en el centro.<br>
+Si el mazo se agota, el juego se detiene momentáneamente mientras se mezclan todas las cartas del <a href="#pozo">pozo de descarte</a> (excepto la de arriba) y se colocan nuevamente como mazo.</p>
+</div>
+<hr>
+<div id="pozo">
+<h2 class="flex"><span class="emoji-grande">🂡</span><div> Pozo de Descarte</div></h2>
+<p>Junto al mazo tapado, se descarta la primera carta para iniciar el <strong>pozo de descarte</strong>.</p>
+</div>
+<hr>
+<h2 class="flex"><span class="emoji-grande">⚙️</span><div>Mecánica de juego</div></h2>
+<p>En su turno, el jugador puede:</p>
+<ul>
+  <li>Finalizar la mano: <a href="#cantar">Cantando <strong>Pedro</strong></a>.</li>
+  <li>Continuar jugando: Robando una carta, ya sea del <a href="#mazo">mazo tapado</a> o la carta visible del <a href="#pozo">pozo de descarte</a>.<br>Luego de verla decide:
+    <ul>
+      <li>Descartar la carta directamente en el <a href="#pozo">pozo de descarte</a> pudiendo hacer uso de las <a href="#habilidades">habilidades</a>.</li>
+      <li>O cambiarla por <strong>cualquiera de sus cartas</strong>, incluidas las que aún no ha visto y cuyo valor desconoce.<br>IMPORTANTE: La carta que se guarda debe ocupar el mismo lugar en el que estaba la que se descartó.</li>
+    </ul>
+  </li>
+</ul>
+
+<blockquote class="flex">
+  <span class="emoji-grande">⚠️</span><div>La carta a descartar de la cuadrícula <strong>no puede mirarse antes, debe ir directamente al <a href="#pozo">pozo de descarte</a></strong>.<br>
+  Si la ve antes, recibe una <strong><a href="#penalizaciones">penalización</a> (+1 carta)</strong>.
+</div></blockquote>
+<hr>
+<div id="habilidades">
+<h2 class="flex"><span class="emoji-grande">🪄</span><div> Habilidades especiales</div></h2>
+<p>Solo aplican cuando se <strong>roba del <a href="#mazo">mazo tapado</a> y se descarta al <a href="#pozo">pozo de descarte</a> en esa misma jugada</strong>:</p>
+
+<table>
+  <tr>
+    <th>Carta</th>
+    <th class="effect">Efecto</th>
+  </tr>
+  <tr>
+    <td style="text-align:center;"><strong>7</strong></td>
+    <td class="effect">Ver una carta <strong>propia</strong></td>
+  </tr>
+  <tr>
+    <td style="text-align:center;"><strong>8</strong></td>
+    <td class="effect">Ver la carta que desee <strong>de otro jugador</strong>, solo el que está jugando puede ver la carta, <strong>el dueño de la carta no puede ver su carta</strong>.</td>
+  </tr>
+  <tr>
+    <td style="text-align:center;"><strong>9</strong></td>
+    <td class="effect">Intercambiar una carta propia con otra de otro jugador, <strong>a ciegas y obligatorio</strong>. Ninguno de los jugadores puede ver ninguna de las cartas intercambiadas</td>
+  </tr>
+</table>
+</div>
+<hr>
+<div id="espejito">
+<h2 class="flex"><span class="emoji-grande">🪞</span><div> Espejito</div></h2>
+<p>Si un jugador tiene una carta del mismo valor (incluye J, Q y K) que la carta visible en el <a href="#pozo">pozo de descarte</a>, puede descartarla <strong>en cualquier momento</strong>, colocándola sobre el pozo.</p>
+<p>Solo cuenta el <strong>primer jugador</strong> que llegue a ese espejito.</p>
+<p><strong>¡No te duermas!</strong></p>
+<p>Ningún otro jugador puede intentar hacer espejito con esa misma carta del pozo. Si luego aparece una nueva carta en el pozo, se puede jugar un nuevo espejito.</p>
+<p>Si un jugador llega tarde al espejito, debe conservar su carta, pero todos sabrán cuál tenía. </p>
+<blockquote class="flex">
+  <span class="emoji-grande">🤬</span><div>Si los jugadores no se ponen de acuerdo sobre quién fue el primero, <strong>todos</strong> los que intentaron hacer el Espejito deberán <strong>guardar sus cartas en el mismo lugar donde las tenían</strong>.</strong>.
+</div></blockquote>
+
+
+<hr>
+<h2 class="flex"><span class="emoji-grande">📢</span><div>Espejito Cantado</div></h2>
+
+<p>Si quieren jugar con el <strong>Espejito Cantado</strong> en lugar del normal, los jugadores deben acordarlo <strong>antes de comenzar la mano</strong>; si no se establece nada, se juega con el espejito normal.</p>
+<blockquote class="flex">
+  <span class="emoji-grande">🤕</span><div>Esta variante está pensada para proteger dedos y cartas
+</div></blockquote>
+<p>En esta variante, el jugador que quiera hacer espejito debe <strong>gritar “¡ESPEJITO!”</strong> y depositar su carta <strong>inmediatamente</strong> en el pozo de descarte.<br>
+Solo contará el primer jugador que lo cante; los demás que intenten hacerlo después (o sin haberlo cantado) no podrán participar de ese Espejito.</p>
+  
+<blockquote class="flex">
+  <span class="emoji-grande">🕊️</span><div>Al igual que el espejito normal, si hay dudas, <strong>todos</strong> los que intentaron hacer el Espejito Cantado guardan sus cartas donde estaban.</strong>.
+</div></blockquote>
+</div>
+<hr>
+<div id="penalizaciones">
+<h2 class="flex"><span class="emoji-grande">⚠️</span><div> Penalizaciones (+1 carta)</div></h2>
+<ul>
+  <li>Ver una carta propia sin usar correctamente la <a href="#habilidades">habilidad</a> del 7.</li>
+  <li>Cambiar el orden de tus cartas (el resto de jugadores han estado memorizando tus cartas).</li>
+  <li>Intentar descartar dos iguales que no lo son <em>(en el <a href="#espejito">espejito</a>)</em>.</li>
+  <li>Dar pistas sobre las cartas de otro jugador.</li>
+</ul>
+<p>Cualquier carta extra se añade como una columna adicional a la cuadrícula. Por ejemplo, con 6 cartas: 2 filas de 3 columnas; con 8 cartas: 2 filas de 4 columnas. Si el espacio no da, se pueden poner como nuevas filas en vez de columnas.</p>
+</div>
+<hr>
+<div id="cantar">
+<h2 class="flex"><span class="emoji-grande">🗣️</span><div> Cantar Pedro</div></h2>
+<p>Se canta <strong>al inicio del turno, antes de robar</strong>.<br>
+En ese momento se detiene el juego y se cuentan los puntos.</p>
+<blockquote class="flex">
+<span class="emoji-grande">😲</span><div>Decir “Pedro” en cualquier contexto <strong>cuenta como cantarlo</strong>.
+</div></blockquote>
+<p>
+Si alguien lo dice en otro momento que no sea al inicio de su turno, se considera cantado al inicio de su <strong>siguiente turno</strong>.<br>
+La mano continúa hasta llegar al jugador <strong>que ha cantado Pedro</strong>.</p>
+</div>
+<hr>
+<div id="descartar">
+<h2 class="flex"><span class="emoji-grande">⛔</span><div> Fin automático de la mano</div></h2>
+<p>Si un jugador se <strong>descarta de todas sus cartas</strong>, debe cantar “Pedro” en ese momento.<br>Se considera cantado al inicio de su próximo turno, <strong>permitiendo que la ronda CONTINÚE</strong> para los jugadores restantes, con el estrés de saber que terminará pronto.</p>
+<blockquote class="flex" id="doble">
+<span class="emoji-grande">😱</span><div>Si <strong>otro jugador llega a 0 puntos</strong> al terminar la mano, el cantor original no tiene el mínimo exclusivo, así que se lleva 30 puntos de penalización.<br>Este otro jugador que ha llegado a cero, al no haber podido cantar 1ero Pedro, sumaría sus puntos igual que el resto (0 puntos).
+</div></blockquote>
+
+<h3>Variante</h3>
+<p>El jugador que se quedó sin cartas inicia la siguiente mano con <strong>5 cartas en vez de 4</strong>.<br>
+Los jugadores tienen que acordarlo antes de empezar.</p>
+</div>
+<hr>
+<div id="puntuacion">
+<h2 class="flex"><span class="emoji-grande">📊</span><div> Puntuación</div></h2>
+<ul>
+  <li>Al que cantó Pedro se le aplicará uno de estos puntajes:
+    <ul>
+      <li>Si se ha <strong>descartado de todas sus cartas</strong> (<a href="#doble">y nadie más tiene 0 puntos</a>) → −30 puntos.</li>
+      <li>Si tiene <strong>menos puntaje que todos</strong> → −10 puntos.</li>
+      <li>Si tiene <strong>igual o más</strong> que otro jugador → suma sus cartas según sus <a href="#valores">valores</a> <strong>+ penalización de 30 puntos</strong>.</li>
+    </ul>
+  </li>
+  <li>Para el resto:
+    <ul>
+      <li>Los demás suman sus cartas normalmente según sus <a href="#valores">valores</a>.</li>
+    </ul>
+  </li>
+</ul>
+</div>
+<hr>
+<h2 class="flex"><span class="emoji-grande">🔁</span><div>Siguiente Mano</div></h2>
+<p>Al finalizar la mano, se anotan los puntos, se recogen todas las cartas, se mezclan y se reparten nuevamente.<br>
+El juego continúa con tantas manos como los jugadores deseen.<br>
+Al finalizar todas las manos, <strong>gana el jugador con la menor cantidad total de puntos acumulados</strong>.</p>
+
+<hr>
+
+<h2 class="flex"><span class="emoji-grande">✍️</span><div>Créditos</div></h2>
+<p><strong>Última actualización:</strong> 2025-10-29<br>
+<strong>Creado por:</strong> Nico<br>
+<strong>Colaboradores:</strong> Clara y Guido<br>
+<strong>Año:</strong> 2025<br>
+<strong>Licencia:</strong> Libre para compartir y jugar</p>
+
+</body>
+</html>
