@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego del Pedro</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 0; }
+        .grid { display: grid; grid-template-columns: repeat(2, 100px); gap: 10px; margin: 20px auto; }
+        .card { width: 100px; height: 150px; background: #fff; border: 1px solid #000; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .hidden { background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAASxQTFRF8PDwxMTEFhYW2NjY/v7+mJiYAAAAurq6////9vb2DQ0Nampq5OTkCAgIh4eH/f39MTEx7Ozs9fX1oKCgJiYmvr6+09PTU1NTd3d38vLyaGhoCQkJ39/f6enpv7+/7+/v29vbsrKyiYmJra2ttbW14eHhEhISdnZ2cHBw7e3tYWFhrq6u9/f3y8vLtra2FBQUvb29xcXFj4+PoaGhYmJiQ0ND/Pz89PT0ISEhioqKkpKSTU1N+vr6+Pj4Hx8f2dnZ5+fnBQUFlpaW1NTUrKysLy8vmZmZMDAwBAQE1tbWPj4+b29vERER3t7eOzs7g4ODpKSk+/v7KysrPz8/AgICBgYG5eXl4uLil5eXa2trs7Oz4ODgmpqa6+vrxsbGfHx8UFBQHR0dsbGxNDQ0XQwXEAAAAUxJREFUeJxFz8tLAlEUBvDzJdk4IyZiYIyWkZVE1EIUhBYprXoJucii/rxeIAUVuWhhLoSQjCIYs1CSQkJ8MYZgjtidEfVwudzzg8M9HwhakXaU0RandmZAHm8Qmdi7RmQpTzQFiPiZrCg0KFtRrML57ajXDQO1V6wFDpzQ4KHqFPDJTCjP5ODOE6lqLSlzHYUZkQt6dYhHjZvtvru/VCPqIS18GFqKWzI5MkO0ldwFJ3KuF9Gc6eOS1O3yI7Irv/xsL/ZxRU0h6aazxqrvcTDubetfhSbm0yzs8CNHwY8Hf3I1paVAIMluj+T5hTGxlnZmVYXFk2AmlL3tp+B9IMU0CPjGeFlSd17HHRFTETHsVP+yvRxaBVLi2yb0GzfbzThrt4ArohAuwteIxBZ14OMUvm3tRimkP4+wnbm904Oz0CWZZaL948OTDo6i/9QwdcjHE/sIAAAAAElFTkSuQmCC') repeat; background-color: #0000ff; color: transparent; }
+        .red { color: red; }
+        #deck, #discard { margin: 10px; font-size: 18px; }
+        button, select, input { margin: 5px; padding: 8px; font-size: 16px; }
+        #debug-bar { position: fixed; top: 0; left: 0; background: #222; color: #fff; padding: 10px; z-index: 1000; width: 100%; text-align: left; }
+        #setup { margin: 60px 20px 20px; }
+        #game { display: none; margin-top: 60px; }
+        #actions { margin: 20px 0; }
+        .debug { color: #000; font-size: 14px; background: #fff; padding: 5px; margin: 5px 0; }
+        #scores { margin: 20px; text-align: left; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 8px; }
+        .winning { background: #ffd; font-weight: bold; }
+        #next-ai { display: none; }
+        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
+        #modal-inner { background: #fff; margin: 100px auto; padding: 20px; width: 80%; max-width: 800px; }
+        .pos-label { font-size: 14px; color: #666; }
+    </style>
+</head>
+<body>
+    <div id="debug-bar">
+        <label><input type="checkbox" id="debug-mode"> Modo Debug (ver cartas)</label>
+        <label id="difficulty-label" style="display:none;">Dificultad: <select id="difficulty">
+            <option value="facil">Fácil</option>
+            <option value="normal" selected>Normal</option>
+            <option value="dificil">Difícil</option>
+        </select></label>
+    </div>
+
+    <div id="setup">
+        <h2>Mira tus 2 cartas iniciales:</h2>
+        <div class="grid" id="peek-grid"></div>
+        <label>Oponentes: <select id="opponents">
+            <option value="1" selected>1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+        </select></label>
+        <label>Dificultad: <select id="initial-difficulty">
+            <option value="facil">Fácil</option>
+            <option value="normal" selected>Normal</option>
+            <option value="dificil">Difícil</option>
+        </select></label>
+        <button id="start">Iniciar Juego</button>
+    </div>
+    <div id="game">
+        <div id="actions">
+            <div id="deck">Mazo: <span id="deck-count"></span></div>
+            <div id="discard">Pozo: <span id="discard-top"></span></div>
+            <button id="draw-deck">Robar del Mazo</button>
+            <button id="draw-discard">Robar del Pozo</button>
+            <button id="discard-btn">Descartar</button>
+            <button id="swap">Cambiar</button>
+            <button id="pedro">Cantar Pedro</button>
+            <button id="view-scores">Ver Puntajes</button>
+            <button id="next-ai">Siguiente Movimiento AI</button>
+            <div id="message"></div>
+        </div>
+        <div id="players"></div>
+        <div id="scores"></div>
+    </div>
+    <div id="modal">
+        <div id="modal-inner">
+            <div id="modal-content"></div>
+            <button id="close-modal">Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+        let deck = [];
+        let discard = [];
+        let players = [];
+        let currentPlayer = 0;
+        let selectedCard = null;
+        let drawnCard = null;
+        let suits = ['♥', '♦', '♣', '♠'];
+        let ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        let redSuits = ['♥', '♦'];
+        let humanHand = [];
+        let difficulty = 'normal';
+        let totalPlayers = 0;
+        let history = [];
+        let lastSwapped = null;
+        const debugCheckbox = document.getElementById('debug-mode');
+        const difficultySelect = document.getElementById('difficulty');
+        const initialDifficulty = document.getElementById('initial-difficulty');
+        const nextAiBtn = document.getElementById('next-ai');
+        const modal = document.getElementById('modal');
+        const closeModal = document.getElementById('close-modal');
+        const viewScoresBtn = document.getElementById('view-scores');
+
+        const positions = [['A1', 'B1'], ['A2', 'B2']];
+
+        function isRed(card) {
+            return redSuits.includes(card.slice(-1));
+        }
+
+        function getRankValue(rank) {
+            if (rank === 'A') return 1;
+            if (rank === 'J') return 11;
+            if (rank === 'Q') return 12;
+            if (rank === 'K') return 13;
+            return parseInt(rank);
+        }
+
+        function getCardValue(card) {
+            const rank = card.slice(0, -1);
+            const suit = card.slice(-1);
+            if (rank === 'Q' && suit === '♠') return 0;
+            return getRankValue(rank);
+        }
+
+        function calculateScore(hand) {
+            return hand.reduce((sum, c) => sum + getCardValue(c.card), 0);
+        }
+
+        function endHand(cantor) {
+            let rawScores = players.map(p => calculateScore(p.hand));
+            let adjusted = [...rawScores];
+            const minOther = Math.min(...rawScores.filter((_, i) => i !== cantor));
+            const cantorRaw = rawScores[cantor];
+            let detail = `${cantorRaw}`;
+            if (cantorRaw === 0 && rawScores.filter(s => s === 0).length === 1) {
+                adjusted[cantor] = -30;
+                detail += ' → -30';
+            } else if (cantorRaw < minOther) {
+                adjusted[cantor] = -10;
+                detail += ' → -10';
+            } else {
+                adjusted[cantor] = cantorRaw + 30;
+                detail += ' +30 = ' + adjusted[cantor];
+            }
+            history.push({raw: rawScores, adjusted, cantor, details: players.map((_, i) => i === cantor ? detail : `${rawScores[i]}`)});
+            if (history.length > 5) history.shift();
+            renderScores();
+            showModal(document.getElementById('scores').innerHTML);
+            setTimeout(newHand, 2000);
+        }
+
+        function renderScores() {
+            const scoresDiv = document.getElementById('scores');
+            scoresDiv.innerHTML = '<h2>Puntajes</h2>';
+            if (history.length === 0) {
+                scoresDiv.innerHTML += '<p><em>Aún no se han jugado manos.</em></p>';
+                return;
+            }
+            const table = document.createElement('table');
+            let header = '<tr><th>Jugador</th>';
+            for (let i = 1; i <= history.length; i++) {
+                header += `<th>Mano ${i}</th>`;
+            }
+            header += '<th>Total</th></tr>';
+            table.innerHTML = header;
+            let totals = Array(players.length).fill(0);
+            players.forEach((p, idx) => {
+                let row = `<tr><td>${p.name}</td>`;
+                let total = 0;
+                history.forEach((h, hIdx) => {
+                    const s = h.adjusted[idx];
+                    const d = h.details[idx];
+                    row += `<td>${d}</td>`;
+                    total += s;
+                });
+                row += `<td>${total}</td></tr>`;
+                totals[idx] = total;
+                table.innerHTML += row;
+            });
+            scoresDiv.appendChild(table);
+            const minTotal = Math.min(...totals);
+            const rows = table.querySelectorAll('tr');
+            for (let i = 1; i < rows.length; i++) {
+                if (totals[i-1] === minTotal) rows[i].classList.add('winning');
+            }
+        }
+
+        function showModal(content) {
+            document.getElementById('modal-content').innerHTML = content;
+            modal.style.display = 'block';
+        }
+
+        closeModal.onclick = () => { modal.style.display = 'none'; };
+        viewScoresBtn.onclick = () => { showModal(document.getElementById('scores').innerHTML); };
+
+        function createDeck() {
+            deck = [];
+            for (let suit of suits) {
+                for (let rank of ranks) {
+                    deck.push(rank + suit);
+                }
+            }
+            shuffle(deck);
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function initPeek() {
+            createDeck();
+            humanHand = [];
+            for (let i = 0; i < 4; i++) {
+                humanHand.push({card: deck.pop(), viewed: i < 2});
+            }
+            renderPeek();
+        }
+
+        function renderPeek() {
+            const grid = document.getElementById('peek-grid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 2; i++) {
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'card' + (isRed(humanHand[i].card) ? ' red' : '');
+                cardDiv.innerText = humanHand[i].card;
+                grid.appendChild(cardDiv);
+            }
+        }
+
+        function startGame() {
+            difficulty = initialDifficulty.value;
+            difficultySelect.value = difficulty;
+            const opps = parseInt(document.getElementById('opponents').value);
+            totalPlayers = opps + 1;
+            history = [];
+            lastSwapped = null;
+            newHand(true);
+        }
+
+        function newHand(initial = false) {
+            if (!initial) createDeck();
+            discard = [deck.pop()];
+            lastSwapped = null;
+            players = [];
+            for (let i = 0; i < totalPlayers; i++) {
+                let hand = [];
+                for (let j = 0; j < 4; j++) {
+                    let card = deck.pop();
+                    hand.push({card, viewed: false, known: null});
+                }
+                const memory = Array(totalPlayers).fill().map(() => Array(4).fill(null));
+                // Cada jugador conoce sus propias A1 y B1 (posiciones 0 y 1)
+                hand[0].known = hand[0].card;
+                hand[1].known = hand[1].card;
+                players.push({hand, score: 0, name: i === 0 ? 'Tú' : `Oponente ${i}`, memory});
+            }
+            // Sobrescribe mano del humano con la vista en peek
+            if (initial) players[0].hand.forEach((c, i) => c.card = humanHand[i].card);
+            currentPlayer = totalPlayers - 1;
+            document.getElementById('setup').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+            if (debugCheckbox.checked) document.getElementById('difficulty-label').style.display = 'inline';
+            nextTurn();
+            render();
+        }
+
+        function nextTurn() {
+            if (lastSwapped !== null) {
+                const {player, pos, val} = lastSwapped;
+                for (let i = 0; i < totalPlayers; i++) {
+                    if (i !== player) {
+                        players[i].memory[player][pos] = val;
+                    }
+                }
+            }
+            currentPlayer = (currentPlayer + 1) % players.length;
+            selectedCard = null;
+            drawnCard = null;
+            lastSwapped = null;
+            render();
+            document.getElementById('message').innerHTML = `<strong>${players[currentPlayer].name}'s turno</strong>`;
+            if (currentPlayer !== 0) {
+                if (debugCheckbox.checked) {
+                    nextAiBtn.style.display = 'inline';
+                    aiTurnStep1();
+                } else {
+                    aiTurn();
+                }
+            }
+        }
+
+        function aiTurnStep1() {
+            const p = players[currentPlayer];
+            let knownStr = '';
+            for (let i = 0; i < totalPlayers; i++) {
+                if (i !== currentPlayer) {
+                    knownStr += ` ${players[i].name}: ${p.memory[i].map(v => v !== null ? v : '?').join(',')}`;
+                }
+            }
+            let msg = `<div class="debug">[DEBUG] ${p.name} pensando... Recuerda:${knownStr}</div>`;
+            document.getElementById('message').innerHTML += msg;
+        }
+
+        nextAiBtn.onclick = () => {
+            nextAiBtn.style.display = 'none';
+            aiTurn(true);
+        };
+
+        function aiTurn(debug = false) {
+            const p = players[currentPlayer];
+            let forgetProb = difficulty === 'facil' ? 0.2 : difficulty === 'normal' ? 0.1 : 0;
+            if (Math.random() < forgetProb) {
+                // Olvidar UNA posición al azar de la memoria de otros jugadores
+                let forgot = false;
+                while (!forgot) {
+                    const randPlayer = Math.floor(Math.random() * totalPlayers);
+                    if (randPlayer !== currentPlayer) {
+                        const randPos = Math.floor(Math.random() * 4);
+                        if (p.memory[randPlayer][randPos] !== null) {
+                            p.memory[randPlayer][randPos] = null;
+                            forgot = true;
+                        }
+                    }
+                }
+            }
+            let drawProb = difficulty === 'facil' ? 0.9 : difficulty === 'normal' ? 0.7 : 0.5;
+            let swapProb = difficulty === 'facil' ? 0.4 : difficulty === 'normal' ? 0.6 : 0.8;
+            let action = Math.random();
+            let source = '';
+            let msg = debug ? `<div class="debug">[DEBUG] ${p.name}: ` : '';
+            let drawnVal, oldCard, oldVal, swapIdx = -1, swapped = false;
+            let drawnFromDiscard = false;
+
+            let shouldTakeDiscard = false;
+            if (action >= drawProb && discard.length > 0 && lastSwapped !== null) {
+                const lastPlayer = lastSwapped.player;
+                const lastPos = lastSwapped.pos;
+                const knownCard = p.memory[lastPlayer][lastPos];
+                const topCard = discard[discard.length - 1];
+                if (knownCard !== null && getCardValue(knownCard) > getCardValue(topCard)) {
+                    shouldTakeDiscard = true;
+                }
+            }
+            if (action >= drawProb && !shouldTakeDiscard && Math.random() < 0.3) shouldTakeDiscard = true;
+
+            if (action < drawProb || !shouldTakeDiscard) {
+                source = 'mazo';
+                if (deck.length === 0) refillDeck();
+                drawnCard = deck.pop();
+                msg += `robó mazo (${drawnCard})`;
+                drawnVal = getCardValue(drawnCard);
+            } else {
+                source = 'pozo';
+                if (discard.length === 0) {
+                    aiTurn(debug);
+                    return;
+                }
+                drawnCard = discard.pop();
+                drawnFromDiscard = true;
+                msg += `robó pozo (${drawnCard})`;
+                drawnVal = getCardValue(drawnCard);
+            }
+
+            let maxKnownVal = -1;
+            p.hand.forEach((c, idx) => {
+                let val = c.known !== null ? getCardValue(c.known) : (p.memory[currentPlayer][idx] !== null ? getCardValue(p.memory[currentPlayer][idx]) : Math.random() * 13 + 1);
+                if (val > maxKnownVal && val > drawnVal) {
+                    maxKnownVal = val;
+                    swapIdx = idx;
+                    oldCard = c.card;
+                    oldVal = val;
+                }
+            });
+
+            let useMemory = false;
+            if (swapIdx === -1) {
+                for (let i = 0; i < p.hand.length; i++) {
+                    const memCard = p.memory[currentPlayer][i];
+                    if (memCard !== null && getCardValue(memCard) > drawnVal) {
+                        swapIdx = i;
+                        oldVal = getCardValue(memCard);
+                        useMemory = true;
+                        break;
+                    }
+                }
+            }
+
+            if (swapIdx > -1 || Math.random() < swapProb) {
+                swapIdx = swapIdx > -1 ? swapIdx : Math.floor(Math.random() * p.hand.length);
+                oldCard = p.hand[swapIdx].card;
+                oldVal = p.hand[swapIdx].known !== null ? getCardValue(p.hand[swapIdx].known) : (p.memory[currentPlayer][swapIdx] !== null ? getCardValue(p.memory[currentPlayer][swapIdx]) : 'desconocido');
+                p.hand[swapIdx].card = drawnCard;
+                p.hand[swapIdx].known = drawnCard;
+                discard.push(oldCard);
+                lastSwapped = {player: currentPlayer, pos: swapIdx, val: drawnCard};
+                swapped = true;
+                msg += `, cambió ${oldCard} (${oldVal}) por ${drawnCard} (${drawnVal})`;
+            } else {
+                discard.push(drawnCard);
+                lastSwapped = null;
+                msg += `, descartó ${drawnCard} (${drawnVal})`;
+            }
+
+            if (debug) {
+                msg += `</div>`;
+                document.getElementById('message').innerHTML += msg;
+            }
+            let reason = '';
+            if (swapped) {
+                const wasKnown = oldVal !== 'desconocido';
+                const memoryPart = useMemory ? ' [usando memoria propia]' : '';
+                reason = wasKnown 
+                    ? `reemplazó carta alta conocida ${oldCard} (${oldVal}) por ${drawnCard} (${drawnVal}) [de ${source}]${memoryPart}`
+                    : `riesgo: cambió posición desconocida por ${drawnCard} (${drawnVal}) [de ${source}]`;
+            } else {
+                reason = `descartó ${drawnCard} (${drawnVal}) de ${source} - no vio reemplazo ventajoso`;
+            }
+            const actionMsg = `<div class="debug">[IA] ${p.name}: ${reason}</div>`;
+            setTimeout(() => document.getElementById('message').innerHTML += actionMsg, 800);
+            drawnCard = null;
+            nextTurn();
+        }
+
+        function render() {
+            const debug = debugCheckbox.checked;
+            const playersDiv = document.getElementById('players');
+            playersDiv.innerHTML = '';
+            players.forEach((p, idx) => {
+                const div = document.createElement('div');
+                let known = '';
+                if (debug && idx > 0) {
+                    known = ` <small>(propias conocidas: ${p.hand.map(c => c.known !== null ? c.card : '¿?').join(', ')})</small>`;
+                }
+                div.innerHTML = `<h2>${p.name}${known}</h2>`;
+                const grid = document.createElement('div');
+                grid.className = 'grid';
+                p.hand.forEach((c, cIdx) => {
+                    const row = Math.floor(cIdx / 2), col = cIdx % 2;
+                    const posLabel = positions[row][col];
+                    const cardDiv = document.createElement('div');
+                    // Solo mostrar si debug está activado
+                    const show = debug;
+                    cardDiv.className = 'card' + (show ? (isRed(c.card) ? ' red' : '') : ' hidden');
+                    cardDiv.innerText = show ? c.card : '';
+                    if (!show && idx === 0) {
+                        const label = document.createElement('div');
+                        label.className = 'pos-label';
+                        label.innerText = posLabel;
+                        cardDiv.appendChild(label);
+                    }
+                    if (idx === 0 && currentPlayer === 0) cardDiv.onclick = () => selectCard(cIdx);
+                    grid.appendChild(cardDiv);
+                });
+                div.appendChild(grid);
+                if (debug && idx > 0) {
+                    const memDiv = document.createElement('div');
+                    memDiv.className = 'known-cards';
+                    let memStr = 'Memoria de otros: ';
+                    for (let i = 0; i < totalPlayers; i++) {
+                        if (i !== idx) {
+                            memStr += `${players[i].name}: ${p.memory[i].map((v, j) => {
+                                const row = Math.floor(j / 2), col = j % 2;
+                                return v !== null ? v : '?';
+                            }).join(',')} | `;
+                        }
+                    }
+                    memDiv.innerText = memStr.slice(0, -3);
+                    div.appendChild(memDiv);
+                }
+                playersDiv.appendChild(div);
+            });
+            document.getElementById('deck-count').innerText = deck.length;
+            const top = discard[discard.length - 1] || 'Vacío';
+            const topSpan = document.getElementById('discard-top');
+            topSpan.innerText = top;
+            topSpan.className = isRed(top) ? 'red' : '';
+            if (drawnCard && currentPlayer === 0) {
+                const color = isRed(drawnCard) ? 'red' : '';
+                document.getElementById('message').innerHTML += ` | Robada: <span class="${color}">${drawnCard}</span>`;
+            }
+        }
+
+        function selectCard(idx) {
+            selectedCard = idx;
+            render();
+        }
+
+        document.getElementById('draw-deck').onclick = () => {
+            if (drawnCard || currentPlayer !== 0) return;
+            if (deck.length === 0) refillDeck();
+            drawnCard = deck.pop();
+            render();
+        };
+
+        document.getElementById('draw-discard').onclick = () => {
+            if (drawnCard || currentPlayer !== 0) return;
+            if (discard.length === 0) return;
+            drawnCard = discard.pop();
+            render();
+        };
+
+        document.getElementById('discard-btn').onclick = () => {
+            if (!drawnCard || currentPlayer !== 0) return;
+            discard.push(drawnCard);
+            lastSwapped = null;
+            drawnCard = null;
+            nextTurn();
+        };
+
+        document.getElementById('swap').onclick = () => {
+            if (!drawnCard || selectedCard === null || currentPlayer !== 0) return;
+            const old = players[0].hand[selectedCard].card;
+            players[0].hand[selectedCard].card = drawnCard;
+            players[0].hand[selectedCard].known = drawnCard;
+            discard.push(old);
+            lastSwapped = {player: 0, pos: selectedCard, val: drawnCard};
+            drawnCard = null;
+            selectedCard = null;
+            nextTurn();
+        };
+
+        document.getElementById('pedro').onclick = () => {
+            if (currentPlayer !== 0) return;
+            endHand(0);
+        };
+
+        function refillDeck() {
+            const top = discard.pop();
+            deck = discard;
+            shuffle(deck);
+            discard = [top];
+        }
+
+        debugCheckbox.onchange = () => {
+            document.getElementById('difficulty-label').style.display = debugCheckbox.checked ? 'inline' : 'none';
+            render();
+        };
+        difficultySelect.onchange = () => { difficulty = difficultySelect.value; };
+        initialDifficulty.onchange = () => { difficultySelect.value = initialDifficulty.value; };
+        document.getElementById('start').onclick = startGame;
+        initPeek();
+    </script>
+</body>
+</html>
